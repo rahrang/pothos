@@ -1,6 +1,6 @@
 // Type map: https://github.com/prisma/prisma/blob/main/packages/client/src/runtime/utils/common.ts#L63
 
-import {
+import type {
   BaseEnum,
   InputFieldMap,
   InputFieldRef,
@@ -8,7 +8,9 @@ import {
   InputType,
   SchemaTypes,
 } from '@pothos/core';
-import { PrismaModelTypes } from '@pothos/plugin-prisma';
+import type { PrismaModelTypes } from '@pothos/plugin-prisma';
+import type { PrismaCreateFieldBuilder } from './create';
+import type { PrismaUpdateFieldBuilder } from './update';
 
 export type FilterListOps = 'every' | 'some' | 'none';
 
@@ -50,14 +52,13 @@ export interface PrismaOrderByOptions<Types extends SchemaTypes, Model extends P
   fields: PrismaOrderByFields<Types, Model> | (() => PrismaOrderByFields<Types, Model>);
 }
 
-export interface PrismaWhereOptions<Types extends SchemaTypes, Model extends PrismaModelTypes>
-  extends Omit<PothosSchemaTypes.InputObjectTypeOptions<Types, InputFieldMap>, 'fields'> {
+export interface PrismaWhereOptions<
+  Types extends SchemaTypes,
+  Fields extends PrismaWhereFields<Types, Model>,
+  Model extends PrismaModelTypes,
+> extends Omit<PothosSchemaTypes.InputObjectTypeOptions<Types, InputFieldMap>, 'fields'> {
   name?: string;
-  fields:
-    | PrismaWhereFields<Types, Model>
-    | ((
-        t: PothosSchemaTypes.InputFieldBuilder<Types, 'InputObject'>,
-      ) => PrismaWhereFields<Types, Model>);
+  fields: Fields | ((t: PrismaUpdateFieldBuilder<Types, Model>) => Fields);
 }
 
 export type PrismaWhereFields<Types extends SchemaTypes, Model extends PrismaModelTypes> = {
@@ -86,6 +87,74 @@ export type PrismaWhereFieldType<
       | InputWithShape<Types, Model['Shape'][K]>
       | InputRef<Model['Where'][K]>
       | InputFieldRef<Model['Where'][K] | null | undefined>;
+
+export interface PrismaCreateOptions<
+  Types extends SchemaTypes,
+  Fields extends PrismaCreateFields<Types, Model>,
+  Model extends PrismaModelTypes,
+> extends Omit<PothosSchemaTypes.InputObjectTypeOptions<Types, InputFieldMap>, 'fields'> {
+  name?: string;
+  fields: Fields | ((t: PrismaCreateFieldBuilder<Types, Model>) => Fields);
+}
+
+export type PrismaCreateFields<Types extends SchemaTypes, Model extends PrismaModelTypes> = {
+  [K in keyof Model['Create']]?: K extends Model['RelationName']
+    ? InputRef<Model['Create'][K]> | InputFieldRef<Model['Create'][K]>
+    : PrismaCreateFieldType<Types, Model, K>;
+};
+
+export interface PrismaCreateFieldOptions<
+  Types extends SchemaTypes,
+  Model extends PrismaModelTypes,
+  K extends keyof Model['Create'],
+> extends Omit<PothosSchemaTypes.InputFieldOptions<Types, InputRef<Model['Create'][K]>>, 'type'> {
+  type: PrismaCreateFieldType<Types, Model, K>;
+}
+
+export type PrismaCreateFieldType<
+  Types extends SchemaTypes,
+  Model extends PrismaModelTypes,
+  K extends keyof Model['Create'],
+> = K extends Model['RelationName']
+  ? InputRef<Model['Create'][K]> | InputFieldRef<Model['Create'][K]>
+  :
+      | InputWithShape<Types, Model['Shape'][K]>
+      | InputRef<Model['Create'][K]>
+      | InputFieldRef<Model['Create'][K]>;
+
+export interface PrismaUpdateOptions<
+  Types extends SchemaTypes,
+  Fields extends PrismaUpdateFields<Types, Model>,
+  Model extends PrismaModelTypes,
+> extends Omit<PothosSchemaTypes.InputObjectTypeOptions<Types, InputFieldMap>, 'fields'> {
+  name?: string;
+  fields: Fields | ((t: PothosSchemaTypes.InputFieldBuilder<Types, 'InputObject'>) => Fields);
+}
+
+export type PrismaUpdateFields<Types extends SchemaTypes, Model extends PrismaModelTypes> = {
+  [K in keyof Model['Update']]?: K extends Model['RelationName']
+    ? PrismaUpdateFieldType<Types, Model, K>
+    : PrismaUpdateFieldType<Types, Model, K>;
+};
+
+export interface PrismaUpdateFieldOptions<
+  Types extends SchemaTypes,
+  Model extends PrismaModelTypes,
+  K extends keyof Model['Update'],
+> extends Omit<PothosSchemaTypes.InputFieldOptions<Types, InputRef<Model['Update'][K]>>, 'type'> {
+  type: PrismaUpdateFieldType<Types, Model, K>;
+}
+
+export type PrismaUpdateFieldType<
+  Types extends SchemaTypes,
+  Model extends PrismaModelTypes,
+  K extends keyof Model['Update'],
+> = K extends Model['RelationName']
+  ? InputRef<Model['Update'][K]> | InputFieldRef<Model['Update'][K]>
+  :
+      | InputWithShape<Types, Model['Shape'][K]>
+      | InputRef<Model['Update'][K]>
+      | InputFieldRef<Model['Update'][K]>;
 
 type InputWithShape<Types extends SchemaTypes, T> =
   | InputRef<T>
@@ -123,3 +192,15 @@ export interface PrismaListFilterOptions<
   name?: string;
   ops: Ops;
 }
+
+export type PrismaShapeFromInputFields<Fields, Nulls = undefined> = {
+  [K in keyof Fields]: Fields[K] extends InputRef<infer T>
+    ? NormalizeNulls<T, Nulls>
+    : Fields[K] extends InputFieldRef<infer T>
+    ? NormalizeNulls<T, Nulls>
+    : never;
+};
+
+export type NormalizeNulls<T, Nulls> = undefined extends T
+  ? NonNullable<T> | Nulls
+  : NonNullable<T>;

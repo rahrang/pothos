@@ -5,9 +5,15 @@ import {
   FilterOps,
   FilterShape,
   OpsOptions,
+  PrismaCreateFields,
+  PrismaCreateOptions,
   PrismaFilterOptions,
   PrismaListFilterOptions,
   PrismaOrderByOptions,
+  PrismaShapeFromInputFields,
+  PrismaUpdateFields,
+  PrismaUpdateOptions,
+  PrismaWhereFields,
   PrismaWhereOptions,
 } from './types';
 
@@ -57,13 +63,36 @@ declare global {
 
       prismaWhere: <
         Name extends keyof Types['PrismaTypes'],
+        Fields extends PrismaWhereFields<Types, Model>,
         Model extends PrismaModelTypes = Types['PrismaTypes'][Name] extends PrismaModelTypes
           ? Types['PrismaTypes'][Name]
           : never,
       >(
         type: Name,
-        options: PrismaWhereOptions<Types, Model>,
-      ) => InputRef<Model['Where']>;
+        options: PrismaWhereOptions<Types, Fields, Model>,
+      ) => InputRef<PrismaShapeFromInputFields<Fields, undefined>>;
+
+      prismaCreate: <
+        Name extends keyof Types['PrismaTypes'],
+        Fields extends PrismaCreateFields<Types, Model>,
+        Model extends PrismaModelTypes = Types['PrismaTypes'][Name] extends PrismaModelTypes
+          ? Types['PrismaTypes'][Name]
+          : never,
+      >(
+        type: Name,
+        options: PrismaCreateOptions<Types, Fields, Model>,
+      ) => InputRef<PrismaShapeFromInputFields<Fields>>;
+
+      prismaUpdate: <
+        Name extends keyof Types['PrismaTypes'],
+        Fields extends PrismaUpdateFields<Types, Model>,
+        Model extends PrismaModelTypes = Types['PrismaTypes'][Name] extends PrismaModelTypes
+          ? Types['PrismaTypes'][Name]
+          : never,
+      >(
+        type: Name,
+        options: PrismaUpdateOptions<Types, Fields, Model>,
+      ) => InputRef<PrismaShapeFromInputFields<Fields, null | undefined>>;
     }
   }
 }

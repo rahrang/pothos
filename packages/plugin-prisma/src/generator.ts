@@ -133,6 +133,18 @@ generatorHandler({
           ),
           ts.factory.createPropertySignature(
             [],
+            'Create',
+            undefined,
+            ts.factory.createTypeReferenceNode(`Prisma.${model.name}CreateInput`),
+          ),
+          ts.factory.createPropertySignature(
+            [],
+            'Update',
+            undefined,
+            ts.factory.createTypeReferenceNode(`Prisma.${model.name}UpdateInput`),
+          ),
+          ts.factory.createPropertySignature(
+            [],
             'RelationName',
             undefined,
             relations.length > 0

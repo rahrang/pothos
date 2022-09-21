@@ -43,6 +43,8 @@ export interface PrismaModelTypes {
   OrderBy: unknown;
   Where: {};
   WhereUnique: {};
+  Update: {};
+  Create: {};
   ListRelations: string;
   RelationName: string;
   Relations: Record<

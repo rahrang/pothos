@@ -27,7 +27,7 @@ model User {
 model Post {
   id       Int       @id @default(autoincrement())
   title    String
-  content  String
+  content  String?
   author   User      @relation(fields: [authorId], references: [id])
   comments Comment[]
   authorId Int
