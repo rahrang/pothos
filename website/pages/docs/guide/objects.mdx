@@ -111,10 +111,10 @@ this case the Giraffe class. `builder.objectType` also returns a `Ref` object th
 
 Pothos schemas build into a plain schema that uses types from the `graphql`package. This means it
 should be compatible with most of the popular GraphQL server implementations for node. In this guide
-we will use `@graphql-yoga/node` but you can use whatever server you want.
+we will use `graphql-yoga` but you can use whatever server you want.
 
 ```typescript
-import { createServer } from '@graphql-yoga/node';
+import { createServer } from 'graphql-yoga';
 
 // Build schema and start server with the types we wrote above
 const server = createServer({
